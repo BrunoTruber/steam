@@ -3,15 +3,11 @@ import { IsDate, IsOptional, IsString, Length } from 'class-validator';
 export class CreateUsersDto {
   @IsString()
   @Length(3, 30)
-  username: string;
+  name: string;
 
   @IsString()
   @Length(8, 30)
   senha: string;
-
-  @IsString()
-  @Length(2, 50)
-  displayName: string;
 
   @IsString()
   imagem: string;
@@ -29,7 +25,7 @@ export class CreateUsersDto {
   updatedAt: Date;
 
   @IsOptional()
-  tweets:number[];
+  jogos:number[];
 
   @IsOptional()
   follows: number[];
