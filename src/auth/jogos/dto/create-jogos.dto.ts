@@ -1,18 +1,21 @@
 /* eslint-disable prettier/prettier */
-import { IsString, Length, IsOptional } from 'class-validator';
+import { IsString } from 'class-validator';
+import { User } from 'src/users/user.entity';
+import { Jogos } from 'src/auth/jogos/jogo.entity';
 
-export class CreateJogosDto {
+export class CreateJogosDto implements Jogos {
+  id?: string;
+  user: User;
+  @IsString()
+  nome: string;
 
   @IsString()
-  @Length(1, 140)
-  text: string;
+  imagem: string;
 
-  @IsOptional()
-  createdAt: string;
+  @IsString()
+  bio: string;
 
-  @IsOptional()
-  updatedAt: string;
+  @IsString()
+  data_lancamento: Date;
 
-  // @IsOptional()
-  // userId: number[];
 }

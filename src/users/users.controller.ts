@@ -5,37 +5,41 @@ import { CreateUsersDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import AuthUser from '../common/decorators/auth-user.decorator';
+import { Role } from '../auth/role.decorator'
+import { UserRole } from './user-roles.enum';
+import { RolesGuard } from 'src/auth/roles.guard';
 
-
+@UseGuards(AuthGuard(), RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private service: UsersService) {}
   
-  @Post('/create-account')
+  @Role(UserRole.ADMIN)
+  @Post('/create')
   create(@Body() data: CreateUsersDto): Promise<User> {
     return this.service.create(data);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Role(UserRole.ADMIN)
   @Get()
   findMany(): Promise<User[]> {
     return this.service.findMany()
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Role(UserRole.ADMIN)
   @Get(':id')
   findUnique(@AuthUser()@Param('id') id: number): Promise<User> {
     return this.service.findUnique(id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Role(UserRole.ADMIN)
   @Delete('/delete/:id')
   @UsePipes(ValidationPipe)
   async delete(@AuthUser()@Param('id') id: number) {
     return this.service.deleteOneUser(id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Role(UserRole.ADMIN)
   @Put('/update/:id')
   @UsePipes(ValidationPipe)
   async update(@AuthUser()@Body() updateUser: CreateUsersDto, @Param('id', ParseIntPipe) id: number,): Promise<User> {

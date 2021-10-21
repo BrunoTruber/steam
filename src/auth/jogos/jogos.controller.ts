@@ -18,7 +18,7 @@ import { AuthGuard } from '@nestjs/passport';
 import AuthUser from 'src/common/decorators/auth-user.decorator';
 import { CreateJogosDto } from 'src/auth/jogos/dto/create-jogos.dto';
 import { JogosService } from './jogos.service';
-import { Request } from 'express';
+import { Jogos } from './jogo.entity';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('jogos')
@@ -27,25 +27,25 @@ export class JogosController {
 
   @Get()
   @UsePipes(ValidationPipe)
-  find(@AuthUser()@Query('username') username?: string): Promise<Jogo[]> {
-    return this.service.find(username);
+  find() {
+    return this.service.find();
   }
 
   @Get(':id')
   @UsePipes(ValidationPipe)
-  findOne(@AuthUser()@Param('id') id: number): Promise<Jogo> {
+  findOne(@AuthUser()@Param('id') id: number): Promise<Jogos> {
     return this.service.findOneJogo(id);
   }
 
   @Post('/create')
   @UsePipes(ValidationPipe)
-  post( @Req() req: Request,@AuthUser()@Body() data: CreateJogosDto): Promise<Jogo> {
-    return this.service.postJogo(req, data );
+  post(@AuthUser()@Body() data: CreateJogosDto): Promise<Jogos> {
+    return this.service.postJogo( data );
   }
 
   @Delete('delete/:id')
   @UsePipes(ValidationPipe)
-  delete(@AuthUser()@Param('id') id: number): Promise<void> {
+  delete(@AuthUser()@Param('id') id: number): Promise<Jogos[]> {
     return this.service.delete(id);
   }
 
@@ -55,7 +55,7 @@ export class JogosController {
     @AuthUser()
     @Body() updateJogo: CreateJogosDto,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<Jogo>{
+  ): Promise<Jogos>{
     return this.service.update(id,updateJogo);
   }
 }

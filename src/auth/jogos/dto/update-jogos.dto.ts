@@ -1,17 +1,22 @@
 /* eslint-disable prettier/prettier */
-import { IsString, Length, IsOptional, IsNumber} from 'class-validator';
+import { IsString} from 'class-validator';
+import { User } from 'src/users/user.entity';
 
 export class UpdateJogoDto {
-  @IsNumber()
-  id: number;
+  @IsString()
+  id?: string;
 
   @IsString()
-  @Length(1, 140)
-  text: string;
+  nome: string;
 
-  @IsOptional()
-  createdAt: string;
+  @IsString()
+  imagem: string;
 
-  @IsOptional()
-  updatedAt: string;
+  @IsString()
+  bio: string;
+
+  @IsString()
+  data_lancamento: Date;
+
+  user: User;
 }
