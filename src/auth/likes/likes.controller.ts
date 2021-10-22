@@ -13,7 +13,7 @@ import {
   } from '@nestjs/common';
   import { CreateLikeDto } from 'src/auth/likes/dto/create-like.dto';
   import { LikesService } from './likes.service';
-  import { Like } from '';
+  import { Like };
   import { AuthGuard } from '@nestjs/passport';
   import AuthUser from 'src/common/decorators/auth-user.decorator';
   

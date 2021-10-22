@@ -27,7 +27,6 @@ export class JogosService {
   async findOneJogo(id: number) {
     const jogo = await this.jogoRepository
       .findOne(id)
-      //.then(p => (!user ? p : !!p && user.id === p.user.id ? p : null));
     if (!jogo)
       throw new NotFoundException('game does not exist or unauthorized');
     return jogo;
