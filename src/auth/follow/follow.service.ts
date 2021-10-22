@@ -5,11 +5,11 @@ import {
     UnauthorizedException,
   } from '@nestjs/common';
   import { CreateFollowDto } from 'src/auth/follow/dto/create-follow.dto';
-  import { Follow } from '@prisma/client';
+  import { Follow } from 'src/auth/follow/follow.entity';
   
   @Injectable()
   export class FollowService {
-    constructor(private service: PrismaService) {}
+    constructor(private ) {}
   
     async follow(data: CreateFollowDto, user: number): Promise<Follow> {
       return await this.prismaService.follow.create({

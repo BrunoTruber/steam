@@ -4,7 +4,7 @@ import { User } from 'src/users/user.entity';
 import { Jogos } from 'src/auth/jogos/jogo.entity';
 
 export class CreateJogosDto implements Jogos {
-  id?: string;
+  //id?: string;
   user: User;
   @IsString()
   nome: string;

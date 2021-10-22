@@ -14,7 +14,7 @@ import {
   import { AuthGuard } from '@nestjs/passport';
   import { CreateFollowDto } from 'src/auth/follow/dto/create-follow.dto';
   import { FollowService } from 'src/auth/follow/follow.service';
-  import { Follow } from '.prisma/client';
+  import { Follow } from 'src/auth/follow/follow.entity';
   import AuthUser from 'src/common/decorators/auth-user.decorator';
   
   @Controller('follow')

@@ -1,96 +1,78 @@
 /* eslint-disable prettier/prettier */
 import {
   Injectable,
+  UnprocessableEntityException,
   NotFoundException,
-  ConflictException,
-  UnauthorizedException
+  InternalServerErrorException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
-import * as bcrypt from 'bcrypt';
-import { CreateUsersDto} from 'src/users/dto/create-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserRepository } from './users.repository';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './user.entity';
+import { UserRole } from './user-roles.enum';
+import { UpdateUserDto } from './dto/update-users.dto';
+import { FindUsersQueryDto } from './dto/find-users-query.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private db: PrismaService) {}
+  constructor(
+    @InjectRepository(UserRepository)
+    private userRepository: UserRepository,
+  ) {}
 
-  async findMany(): Promise<User[]> {
-    return this.db.user.findMany();
+  async createAdminUser(createUserDto: CreateUserDto): Promise<User> {
+    if (createUserDto.password != createUserDto.passwordConfirmation) {
+      throw new UnprocessableEntityException('As senhas não conferem');
+    } else {
+      return this.userRepository.createUser(createUserDto, UserRole.ADMIN);
+    }
   }
 
-  async findUnique(id: number): Promise<User> {
-    const user = await this.db.user.findUnique({
-      where: { id },
+  async findUserById(userId: string): Promise<User> {
+    const user = await this.userRepository.findOne(userId, {
+      select: ['email', 'name', 'role', 'id'],
     });
 
-    if (!user) {
-      throw new NotFoundException();
-    }
+    if (!user) throw new NotFoundException('Usuário não encontrado');
 
     return user;
   }
 
-  async create(data: CreateUsersDto): Promise<User> {
-    const existing = await this.db.user.findUnique({
-      where: { username: data.username },
-    });
+  async updateUser(updateUserDto: UpdateUserDto, id: string): Promise<User> {
+    const user = await this.findUserById(id);
 
-    if (existing) {
-      throw new ConflictException('username already exists');
+    const { name, email, role, status } = updateUserDto;
+
+    user.name = name ? name : user.name;
+    user.email = email ? email : user.email;
+    user.role = role ? role : user.role;
+    // verificar status
+    user.status = status ? status : user.status;
+
+    try {
+      await user.save();
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Erro ao salvar os dados no banco de dados',
+      );
     }
-
-    const hashedPassword = await bcrypt.hash(data.senha, 10);
-
-    const tweets = data.tweets.map((tweet) => ({
-      id: tweet,
-    }))
-
-    const user = await this.db.user.create({
-      data: {
-        ...data,
-        senha: hashedPassword,
-        tweets: {
-          connect: tweets,
-        },
-      },
-      include: {
-        tweets: true
-      }
-    });
-
-    return user;
   }
 
-  async updateOneUser(id: number, user: CreateUsersDto): Promise<User> {
-    return await this.db.user.update({
-      data: {
-        ...user,
-        id: undefined,
-      },
-      where: {
-        id,
-      }
-    });
+  async deleteUser(userId: string) {
+    const result = await this.userRepository.delete({ id: userId });
+
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        'Não foi encontrado um usuário com o ID informado',
+      );
+    }
   }
 
-  async deleteOneUser(id: number): Promise<User> {
-    const delUser = await this.db.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!delUser) {
-      throw new NotFoundException();
-    }
-
-    if (delUser.id !== id) {
-      throw new UnauthorizedException();
-    }
-
-    return this.db.user.delete({
-      where: { id },
-    });
+  async findUsers(
+    queryDto: FindUsersQueryDto,
+  ): Promise<{ users: User[]; total: number }> {
+    const users = await this.userRepository.findUsers(queryDto);
+    return users;
   }
 }

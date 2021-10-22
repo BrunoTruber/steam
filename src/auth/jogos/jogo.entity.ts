@@ -24,6 +24,11 @@ export class Jogos {
     @CreateDateColumn()
     data_lancamento: Date;
   
-    @ManyToOne(() => User, user => user.jogos)
-    user: User;
+    @ManyToOne(
+      () => User,
+       user => user.jogos,
+       { eager: true },
+    )
+    user: any;
+    
 }

@@ -7,7 +7,7 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    OneToMany
+    OneToOne
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Jogos } from 'src/auth/jogos/jogo.entity';
@@ -22,6 +22,15 @@ export class User extends BaseEntity {
     
     @Column({ nullable: false, type: 'varchar', length: 200 })
     name: string;
+
+    @Column({ nullable: false, type: 'varchar'})
+    imagem: string;
+
+    @Column({ nullable: false})
+    nascimento: Date;
+
+    @Column({ nullable: false, type: 'varchar'})
+    bio: string;
 
     //admin ou usuario comumm?
     @Column({ nullable: false, type: 'varchar', length: 20 })
@@ -48,9 +57,16 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToMany(() => Jogos, jogos => jogos.user)
-    jogos: Jogos[];
+    // @OneToMany(() => Jogos, jogos => jogos.user)
+    // jogos: Jogos;
 
+    @OneToOne(
+        _=> Jogos,
+        jogos => jogos.user,
+        { cascade: true },
+      )
+      jogos: Jogos;
+    
     async checkPassword(password: string): Promise<boolean> {
         const hash = await bcrypt.hash(password, this.salt)
         return hash === this.password;

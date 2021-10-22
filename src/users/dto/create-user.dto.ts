@@ -1,36 +1,27 @@
 /* eslint-disable prettier/prettier */
-import { IsDate, IsOptional, IsString, Length } from 'class-validator';
-export class CreateUsersDto {
-  @IsString()
-  @Length(3, 30)
+import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+
+export class CreateUserDto {
+  @IsNotEmpty({ message: 'Informe um endereço de email' })
+  @IsEmail({}, { message: 'Informe um endereço de email válido' })
+  @MaxLength(200, {
+    message: 'O endereço de email de ter menos de 200 carcateres',
+  })
+  email: string;
+
+  @IsNotEmpty({ message: 'Informe o nome do usuário' })
+  @MaxLength(200, {
+    message: 'O nome deve ter menos de 200 carcateres',
+  })
   name: string;
 
-  @IsString()
-  @Length(8, 30)
-  senha: string;
+  @IsNotEmpty({ message: 'Informe uma senha' })
+  @MinLength(6, { message: 'A senha deve ter no mínimo 6 carcateres' })
+  password: string;
 
-  @IsString()
-  imagem: string;
-
-  @IsString()
-  bio: string;
-
-  @IsDate()
-  nascimento: string;
-
-  @IsString()
-  createdAt: Date;
-
-  @IsString()
-  updatedAt: Date;
-
-  @IsOptional()
-  jogos:number[];
-
-  @IsOptional()
-  follows: number[];
-
-  @IsOptional()
-  likes: number[]; 
-
+  @IsNotEmpty({ message: 'Informe a confirmação de senha' })
+  @MinLength(6, {
+    message: 'A confirmação de senha deve ter no mínimo 6 carcateres',
+  })
+  passwordConfirmation: string;
 }

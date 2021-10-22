@@ -1,13 +1,13 @@
 /* eslint-disable prettier/prettier */
-import { IsOptional } from 'class-validator';
-import { Jogos } from 'src/auth/jogos/jogo.entity';
+import { IsOptional, IsString } from 'class-validator';
 import { User } from 'src/users/user.entity';
 
 export class CreateFollowDto {
+    @IsString()
+    id: string;
+
     @IsOptional()
     user: User;
-
-    jogos: Jogos;
 
     @IsOptional()
     followedId: number;

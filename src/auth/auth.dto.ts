@@ -1,15 +1,15 @@
 /* eslint-disable prettier/prettier */
 import { IsString, Length } from 'class-validator';
-import { User } from '.prisma/client';
+import { User } from 'src/users/user.entity';
 
 export class LoginDto {
   @IsString()
   @Length(3, 30)
-  username: string;
+  email: string;
 
   @IsString()
   @Length(8, 30)
-  senha: string;
+  password: string;
 }
 
 export class AuthResponse {

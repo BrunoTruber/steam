@@ -1,48 +1,88 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Post, Put, Param, UseGuards, UsePipes, ValidationPipe, Delete, ParseIntPipe} from '@nestjs/common';
-import { User } from '.prisma/client';
-import { CreateUsersDto } from './dto/create-user.dto';
+import {
+  Controller,
+  Post,
+  Body,
+  ValidationPipe,
+  UseGuards,
+  Get,
+  Param,
+  Patch,
+  ForbiddenException,
+  Delete,
+  Query,
+} from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
+import { ReturnUserDto } from './dto/return-user.dto';
 import { AuthGuard } from '@nestjs/passport';
-import AuthUser from '../common/decorators/auth-user.decorator';
-import { Role } from '../auth/role.decorator'
-import { UserRole } from './user-roles.enum';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { Role } from '../auth/role.decorator';
+import { UserRole } from './user-roles.enum';
+import { UpdateUserDto } from './dto/update-users.dto';
+import { User } from './user.entity';
+import { GetUser } from 'src/auth/get.user.decorator';
+import { FindUsersQueryDto } from './dto/find-users-query.dto';
 
-@UseGuards(AuthGuard(), RolesGuard)
 @Controller('users')
+@UseGuards(AuthGuard(), RolesGuard)
 export class UsersController {
-  constructor(private service: UsersService) {}
-  
+  constructor(private usersService: UsersService) {}
+
+  @Post()
   @Role(UserRole.ADMIN)
-  @Post('/create')
-  create(@Body() data: CreateUsersDto): Promise<User> {
-    return this.service.create(data);
+  async createAdminUser(
+    @Body(ValidationPipe) createUserDto: CreateUserDto,
+  ): Promise<ReturnUserDto> {
+    const user = await this.usersService.createAdminUser(createUserDto);
+    return {
+      user,
+      message: 'Administrador cadastrado com sucesso',
+    };
   }
 
-  @Role(UserRole.ADMIN)
-  @Get()
-  findMany(): Promise<User[]> {
-    return this.service.findMany()
-  }
-
-  @Role(UserRole.ADMIN)
   @Get(':id')
-  findUnique(@AuthUser()@Param('id') id: number): Promise<User> {
-    return this.service.findUnique(id);
+  @Role(UserRole.ADMIN)
+  async findUserById(@Param('id') id: string): Promise<ReturnUserDto> {
+    const user = await this.usersService.findUserById(id);
+    return {
+      user,
+      message: 'Usuário encontrado',
+    };
   }
 
-  @Role(UserRole.ADMIN)
-  @Delete('/delete/:id')
-  @UsePipes(ValidationPipe)
-  async delete(@AuthUser()@Param('id') id: number) {
-    return this.service.deleteOneUser(id);
+  @Patch(':id')
+  async updateUser(
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @GetUser() user: User,
+    @Param('id') id: string,
+  ) {
+    if (user.role != UserRole.ADMIN && user.id.toString() != id) {
+      throw new ForbiddenException(
+        'Você não tem autorização para acessar esse recurso',
+      );
+    } else {
+      return this.usersService.updateUser(updateUserDto, id);
+    }
   }
 
+  @Delete(':id')
   @Role(UserRole.ADMIN)
-  @Put('/update/:id')
-  @UsePipes(ValidationPipe)
-  async update(@AuthUser()@Body() updateUser: CreateUsersDto, @Param('id', ParseIntPipe) id: number,): Promise<User> {
-    return this.service.updateOneUser( id, updateUser );
+  async deleteUser(@Param('id') id: string) {
+    await this.usersService.deleteUser(id);
+    return {
+      message: 'Usuário removido com sucesso',
+    };
+  }
+
+  @Get()
+  @Role(UserRole.ADMIN)
+  async findUsers(@Query() query: FindUsersQueryDto) {
+    const found = await this.usersService.findUsers(query);
+
+    return {
+      found,
+      message: 'Usários enconstrados',
+    };
   }
 }

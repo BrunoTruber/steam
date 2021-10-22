@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { EntityRepository, Repository } from 'typeorm';
 import { User } from './user.entity';
-import { CreateUsersDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserRole } from './user-roles.enum';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -10,45 +10,45 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CredentialsDto } from 'src/auth/credentials.dto';
-//import { FindUsersQueryDto } from './dtos/find-users-query.dto';
+import { FindUsersQueryDto } from './dto/find-users-query.dto';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
-  // async findUsers(
-  //   queryDto: FindUsersQueryDto,
-  // ): Promise<{ users: User[]; total: number }> {
-  //   queryDto.page = queryDto.page < 1 ? 1 : queryDto.page;
-  //   queryDto.limit = queryDto.limit > 100 ? 100 : queryDto.limit;
-  //   queryDto.status = queryDto.status === undefined ? true : queryDto.status;
+  async findUsers(
+    queryDto: FindUsersQueryDto,
+  ): Promise<{ users: User[]; total: number }> {
+    queryDto.page = queryDto.page < 1 ? 1 : queryDto.page;
+    queryDto.limit = queryDto.limit > 100 ? 100 : queryDto.limit;
+    queryDto.status = queryDto.status === undefined ? true : queryDto.status;
 
-  //   const { email, name, status, role } = queryDto;
-  //   const query = this.createQueryBuilder('user');
-  //   query.where('user.status = :status', { status });
+    const { email, name, status, role } = queryDto;
+    const query = this.createQueryBuilder('user');
+    query.where('user.status = :status', { status });
 
-  //   if (email) {
-  //     query.andWhere('user.email ILIKE :email', { email: `%${email}%` });
-  //   }
+    if (email) {
+      query.andWhere('user.email ILIKE :email', { email: `%${email}%` });
+    }
 
-  //   if (name) {
-  //     query.andWhere('user.name ILIKE :name', { name: `%${name}%` });
-  //   }
+    if (name) {
+      query.andWhere('user.name ILIKE :name', { name: `%${name}%` });
+    }
 
-  //   if (role) {
-  //     query.andWhere('user.role ILIKE :role', { role });
-  //   }
+    if (role) {
+      query.andWhere('user.role ILIKE :role', { role });
+    }
 
-  //   query.skip((queryDto.page - 1) * queryDto.limit);
-  //   query.take(queryDto.limit);
-  //   query.orderBy(queryDto.sort ? JSON.parse(queryDto.sort) : undefined);
-  //   query.select(['user.name', 'user.email', 'user.role', 'user.status']);
+    query.skip((queryDto.page - 1) * queryDto.limit);
+    query.take(queryDto.limit);
+    query.orderBy(queryDto.sort ? JSON.parse(queryDto.sort) : undefined);
+    query.select(['user.name', 'user.email', 'user.role', 'user.status']);
 
-  //   const [users, total] = await query.getManyAndCount();
+    const [users, total] = await query.getManyAndCount();
 
-  //   return { users, total };
-  //}
+    return { users, total };
+  }
 
   async createUser(
-    createUserDto: CreateUsersDto,
+    createUserDto: CreateUserDto,
     role: UserRole,
   ): Promise<User> {
     const { email, name, password } = createUserDto;
@@ -77,6 +77,14 @@ export class UserRepository extends Repository<User> {
         );
       }
     }
+  }
+
+  async changePassword(id: string, password: string) {
+    const user = await this.findOne(id);
+    user.salt = await bcrypt.genSalt();
+    user.password = await this.hashPassword(password, user.salt);
+    user.recoverToken = null;
+    await user.save();
   }
 
   async checkCredentials(credentialsDto: CredentialsDto): Promise<User> {
